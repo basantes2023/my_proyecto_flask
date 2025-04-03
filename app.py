@@ -40,11 +40,9 @@ def formulario():
 @app.route('/resultado')
 def resultado():
     nombre = session.get('nombre', None)  # Obtener de sesión
-
     if nombre is None:  # Evita errores si no se ha llenado el formulario
         flash('No hay datos en la sesión. Ingresa tu nombre en el formulario.', 'warning')
         return redirect(url_for('formulario'))
-
     return render_template('resultado.html', nombre=nombre)
 
 @app.route('/about')
@@ -106,6 +104,8 @@ def registro():
         return redirect(url_for('login'))
     return render_template('registro.html')
 
+from flask import flash, redirect, url_for
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -116,12 +116,13 @@ def login():
 
         if usuario and usuario.verificar_password(password):
             login_user(usuario)
-            flash('Inicio de sesión exitoso')
-            return redirect(url_for('index'))  # Se cambió 'protegido' a 'index'
+            flash('¡Has iniciado la sesión correctamente!.', 'success')
+            return redirect(url_for('index'))  # Redirige a la página de inicio
         else:
             flash('Email o contraseña incorrectos')
 
     return render_template('login.html')
+
 
 @app.route('/crear', methods=['GET', 'POST'])
 def crear_producto():
@@ -139,7 +140,7 @@ def crear_producto():
 
 @app.route('/productos')
 def listar_productos():
-    productos = Producto.obtener_todos()
+    productos = Producto.obtener_todos()  # Asegúrate de que esto devuelva una lista de objetos Producto
     return render_template('productos.html', productos=productos)
 
 @app.route('/editar/<int:id_producto>', methods=['GET', 'POST'])
@@ -162,6 +163,13 @@ def eliminar_producto(id_producto):
         return redirect(url_for('listar_productos'))
     producto = Producto.obtener_por_id(id_producto)
     return render_template('eliminar_producto.html', producto=producto)
+
+@app.route('/logout')
+@login_required  # Asegúrate de que solo los usuarios autenticados puedan cerrar sesión
+def logout():
+    logout_user()  # Cierra la sesión del usuario
+    flash('Has cerrado sesión exitosamente', 'success')
+    return redirect(url_for('index'))  # Redirige al inicio después de cerrar sesión
 
 @login_manager.user_loader
 def load_user(user_id):

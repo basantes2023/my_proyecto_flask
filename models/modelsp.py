@@ -1,6 +1,5 @@
-from flask_login import UserMixin
 from Conexion.conexion import obtener_conexion
-from werkzeug.security import check_password_hash
+
 class Producto:
     def __init__(self, id_producto, nombre, precio, stock):
         self.id_producto = id_producto
@@ -16,7 +15,8 @@ class Producto:
         productos = cursor.fetchall()
         cursor.close()
         conexion.close()
-        return productos
+        # Convertir los diccionarios a objetos Producto
+        return [Producto(**producto) for producto in productos]
 
     @staticmethod
     def insertar(nombre, precio, stock):
@@ -35,7 +35,9 @@ class Producto:
         producto = cursor.fetchone()
         cursor.close()
         conexion.close()
-        return producto
+        if producto:  # Asegúrate de que haya un producto
+            return Producto(**producto)
+        return None
 
     @staticmethod
     def actualizar(id_producto, nombre, precio, stock):
